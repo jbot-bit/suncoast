@@ -1,0 +1,6 @@
+# Replit config and scanners
+.config/
+.replit
+*.env
+secrets.toml
+.git.backup.*

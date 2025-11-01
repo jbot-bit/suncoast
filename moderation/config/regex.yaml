@@ -1,0 +1,31 @@
+# Regex Patterns - Vouch Portal Moderation
+# Compiled patterns for fast matching
+
+patterns:
+  # URLs and links
+  url: "(?i)\\bhttps?://[\\w.-]+(?:/[\\w\\-./?%&=]*)?\\b"
+  telegram: "(?i)\\b(?:t\\.me|telegram\\.me|telegram\\.dog)/[\\w_]+\\b"
+  shortened_url: "(?i)\\b(?:bit\\.ly|tinyurl\\.com|goo\\.gl|shorturl\\.at|ow\\.ly)/[\\w]+\\b"
+
+  # Financial patterns
+  price: "(?i)\\b(?:\\$\\s?\\d+(?:\\.\\d{1,2})?|\\d+\\s?(?:/|per)\\s?(?:mg|g|qp|oz|ea|each))\\b"
+  payment: "(?i)\\b(?:btc|eth|usdt|usdc|bnb|xmr|monero|payid|cashapp|venmo|zelle|binance|coinspot|kraken|coinbase)\\b"
+  crypto_address: "\\b(?:0x[a-fA-F0-9]{40}|[13][a-km-zA-HJ-NP-Z1-9]{25,34}|bc1[a-zA-Z0-9]{39,59})\\b"
+
+  # Contact info
+  phone: "\\b(?:\\+?\\d{1,3}[-\\s]?)?\\(?\\d{3}\\)?[-\\s]?\\d{3}[-\\s]?\\d{4}\\b"
+  email: "\\b[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}\\b"
+
+  # Obfuscation attempts
+  obf_pm: "(?i)\\b(p\\W?m|d\\W?m|p\\W?\\W?m|dm\\W?me|pm\\W?me)\\b"
+  obf_drug: "(?i)\\b(w[e3]{2}d|c[o0]k[e3]|m[o0]lly|x[a@]n[a@]x|0xy|f[e3]nt)\\b"
+
+  # Urgency/scam indicators
+  urgency: "(?i)\\b(now|urgent|right now|today only|last chance|limited time|act fast|hurry|quick)\\b"
+  guarantee: "(?i)\\b(guaranteed|100% safe|no risk|risk free|money back|refund)\\b"
+
+  # Account trading
+  credentials: "(?i)\\b(?:login|logins|account|accounts|netflix|spotify|hulu|disney|hbo|vpn|cvv|fullz|ssn|dumps|bins|carding|cashout)\\b"
+
+  # Suspicious messaging apps
+  encrypted_apps: "(?i)\\b(wickr|session|signal|threema|wire|element|matrix|jabber|xmpp)\\b"

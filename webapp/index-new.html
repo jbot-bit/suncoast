@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0">
+    <title>LocalVouch - Trust Your Community</title>
+    <link rel="stylesheet" href="/static/app.css">
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+</head>
+<body>
+    <div id="app">
+        <!-- Navigation -->
+        <nav class="nav">
+            <button class="nav-btn" data-tab="vouch">
+                <span class="nav-icon">🔍</span>
+                <span>Vouch</span>
+            </button>
+            <button class="nav-btn" data-tab="me">
+                <span class="nav-icon">👤</span>
+                <span>Me</span>
+            </button>
+            <button class="nav-btn" data-tab="community">
+                <span class="nav-icon">👥</span>
+                <span>Community</span>
+            </button>
+            <button class="nav-btn" data-tab="groups">
+                <span class="nav-icon">💬</span>
+                <span>Groups</span>
+            </button>
+        </nav>
+
+        <!-- VOUCH TAB (Default) -->
+        <div id="vouch-tab" class="tab-content active">
+            <div class="container">
+                <div class="search-box">
+                    <input
+                        type="text"
+                        id="searchInput"
+                        placeholder="Search by username..."
+                        autocomplete="off"
+                        class="search-input"
+                    >
+                </div>
+
+                <div id="searchResults" class="search-results"></div>
+
+                <div class="section">
+                    <h3 class="section-title">Recent in Your Area</h3>
+                    <div id="recentUsers" class="user-grid"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ME TAB -->
+        <div id="me-tab" class="tab-content">
+            <div class="container">
+                <div class="profile-card">
+                    <div class="profile-header">
+                        <div class="profile-name" id="myName">Loading...</div>
+                        <div class="profile-username" id="myUsername">@username</div>
+                    </div>
+
+                    <div class="rank-badge" id="myRank">
+                        <span class="rank-emoji">🆕</span>
+                        <span class="rank-text">NEW</span>
+                    </div>
+
+                    <div class="vouch-counts">
+                        <div class="count-item thumbs-up">
+                            <span class="count-icon">👍</span>
+                            <span class="count-number" id="myThumbsUp">0</span>
+                        </div>
+                        <div class="count-item thumbs-down">
+                            <span class="count-icon">👎</span>
+                            <span class="count-number" id="myThumbsDown">0</span>
+                        </div>
+                    </div>
+
+                    <div class="progress-container" id="progressContainer">
+                        <div class="progress-label">
+                            <span id="progressText">Get 3 vouches to become TRUSTED</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+                        </div>
+                    </div>
+
+                    <button class="btn btn-primary" id="shareBtn">
+                        <span>📤</span> Invite People to Vouch
+                    </button>
+                </div>
+
+                <div class="section">
+                    <h3 class="section-title">Recent Vouches You Received</h3>
+                    <div id="receivedVouches" class="vouch-list"></div>
+                </div>
+
+                <div class="section">
+                    <h3 class="section-title">Vouches You Gave</h3>
+                    <div id="givenVouches" class="vouch-list"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- COMMUNITY TAB -->
+        <div id="community-tab" class="tab-content">
+            <div class="container">
+                <div class="section">
+                    <h3 class="section-title">Top Trusted Locals</h3>
+                    <div id="topTrusted" class="user-grid"></div>
+                </div>
+
+                <div class="section">
+                    <h3 class="section-title">Recent Activity</h3>
+                    <div id="recentActivity" class="activity-feed"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- GROUPS TAB -->
+        <div id="groups-tab" class="tab-content">
+            <div class="container">
+                <div class="section">
+                    <h3 class="section-title">Community Groups</h3>
+                    <p class="section-subtitle">Join groups to connect with verified locals</p>
+                    <div id="communityGroups" class="groups-list"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- PROFILE MODAL -->
+        <div id="profileModal" class="modal">
+            <div class="modal-content">
+                <button class="modal-close" id="modalClose">✕</button>
+
+                <div class="modal-profile">
+                    <div class="profile-name" id="modalName">User Name</div>
+                    <div class="profile-username" id="modalUsername">@username</div>
+
+                    <div class="rank-badge" id="modalRank">
+                        <span class="rank-emoji">✅</span>
+                        <span class="rank-text">TRUSTED</span>
+                    </div>
+
+                    <div class="vouch-counts">
+                        <div class="count-item thumbs-up">
+                            <span class="count-icon">👍</span>
+                            <span class="count-number" id="modalThumbsUp">0</span>
+                        </div>
+                        <div class="count-item thumbs-down">
+                            <span class="count-icon">👎</span>
+                            <span class="count-number" id="modalThumbsDown">0</span>
+                        </div>
+                    </div>
+
+                    <!-- Thumbs Buttons -->
+                    <div class="thumbs-buttons">
+                        <button class="thumb-btn thumb-up" id="thumbUpBtn">
+                            <span class="thumb-icon">👍</span>
+                            <span>Vouch</span>
+                        </button>
+                        <button class="thumb-btn thumb-down" id="thumbDownBtn">
+                            <span class="thumb-icon">👎</span>
+                            <span>Warn</span>
+                        </button>
+                    </div>
+
+                    <!-- Optional Message -->
+                    <div class="message-box" id="messageBox" style="display: none;">
+                        <textarea
+                            id="vouchMessage"
+                            placeholder="Add a quick note (optional, 60 chars max)..."
+                            maxlength="60"
+                            rows="2"
+                        ></textarea>
+                        <div class="char-counter">
+                            <span id="charCount">0</span>/60
+                        </div>
+                        <button class="btn btn-primary btn-block" id="submitVouchBtn">
+                            Submit
+                        </button>
+                    </div>
+
+                    <!-- Vouches List -->
+                    <div class="section">
+                        <h4 class="vouches-title">Vouches (<span id="vouchesCount">0</span>)</h4>
+                        <div id="modalVouchesList" class="modal-vouches-list"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Toast Notification -->
+        <div id="toast" class="toast"></div>
+
+        <!-- Loading Overlay -->
+        <div id="loadingOverlay" class="loading-overlay">
+            <div class="spinner"></div>
+        </div>
+    </div>
+
+    <script src="/static/app.js"></script>
+</body>
+</html>

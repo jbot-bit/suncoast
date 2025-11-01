@@ -1,0 +1,89 @@
+# Moderation Settings - Vouch Portal
+# Thresholds and action mappings
+
+# Severity thresholds
+severity_scores:
+  critical: 100      # Instant ban
+  high: 50           # Delete + strike
+  medium: 25         # Delete message
+  low: 10            # Flag for review
+  suspicious: 5      # Escalate to AI
+
+# Action mappings
+actions:
+  critical:
+    action: "mute"
+    delete_message: true
+    notify_admin: true
+    strike_penalty: -10
+    mute_duration: 86400  # 24 hours in seconds
+
+  high:
+    action: "delete"
+    delete_message: true
+    notify_user: true
+    strike_penalty: -2
+
+  medium:
+    action: "delete"
+    delete_message: true
+    notify_user: false
+    strike_penalty: -1
+
+  suspicious:
+    action: "escalate"  # Pass to AI Layer 2
+    delete_message: false
+    log_for_review: true
+
+  safe:
+    action: "allow"
+    behavior_points: 1
+
+# Pattern weights (how much each match contributes to score)
+pattern_weights:
+  critical_keyword: 100
+  high_keyword: 50
+  medium_keyword: 25
+  context_trigger: 10
+  price_pattern: 15
+  payment_pattern: 20
+  crypto_address: 30
+  phone_number: 20
+  email: 15
+  telegram_link: 10
+  url: 5
+  urgency: 10
+  guarantee: 15
+  credentials: 40
+  encrypted_app: 15
+
+# Compound pattern multipliers
+compound_rules:
+  # If multiple triggers in same message, multiply score
+  - patterns: ["high_keyword", "price_pattern", "payment_pattern"]
+    multiplier: 2.0
+    description: "Drug sale with pricing"
+
+  - patterns: ["context_trigger", "obf_pm", "telegram_link"]
+    multiplier: 1.5
+    description: "Solicitation attempt"
+
+  - patterns: ["credentials", "price_pattern"]
+    multiplier: 2.5
+    description: "Account selling"
+
+# Fuzzy matching settings
+fuzzy:
+  enabled: true
+  threshold: 85  # Minimum similarity score (0-100)
+  max_edit_distance: 2
+
+# Homoglyph detection
+homoglyphs:
+  enabled: true
+  normalize: true
+
+# Whitelist bypass
+whitelist:
+  enabled: true
+  exact_match_only: true
