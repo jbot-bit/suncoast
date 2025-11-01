@@ -19,6 +19,17 @@ class Database:
 
     async def connect(self):
         """Initialize database connection pool"""
+        # Check if DATABASE_URL is set
+        if not self.database_url:
+            error_msg = (
+                "DATABASE_URL environment variable is not set.\n"
+                "Please set DATABASE_URL in your environment or .env file.\n"
+                "Example: DATABASE_URL=postgresql://user:password@host:port/database\n"
+                "See .env.example for more details."
+            )
+            logger.error(error_msg)
+            raise ValueError(error_msg)
+        
         try:
             self.pool = await asyncpg.create_pool(
                 self.database_url,
