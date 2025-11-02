@@ -1,0 +1,38 @@
+# Whitelist - Safe phrases that should never be flagged
+# One phrase per line (case-insensitive exact matching)
+
+kill -9
+kill time
+kill switch
+coke zero
+diet coke
+coca cola
+pokies venue
+self-exclusion
+drug testing
+drug free
+say no to drugs
+anti-drug
+weed removal
+weed killer
+lawn weed
+cannabis research
+medical cannabis
+legal cannabis
+prescription medication
+pharmacy
+pharmaceutical
+bitcoin news
+crypto news
+blockchain technology
+cryptocurrency market
+signal processing
+signal strength
+encrypted connection
+secure connection
+vpn service
+privacy tools
+account settings
+login help
+password reset
+support ticket

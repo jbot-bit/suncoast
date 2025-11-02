@@ -1,0 +1,103 @@
+# Moderation Categories - Vouch Portal
+# Organized by severity level
+
+critical:
+  - csam
+  - child porn
+  - cp
+  - bestiality
+  - hitman
+  - hire hitman
+  - contract killer
+  - assassin
+  - knuckle dusters
+  - brass knuckles
+
+high:
+  - buds
+  - weed
+  - ganja
+  - cannabis
+  - marijuana
+  - thc
+  - gear
+  - dmt
+  - lsd
+  - acid
+  - mdma
+  - ecstasy
+  - molly
+  - lean
+  - sizzurp
+  - shrooms
+  - psilocybin
+  - coke
+  - cocaine
+  - crack
+  - ket
+  - ketamine
+  - vyvanse
+  - adderall
+  - ritalin
+  - alprazolam
+  - xanax
+  - xanny
+  - bars
+  - oxy
+  - oxycodone
+  - percocet
+  - codeine
+  - fentanyl
+  - heroin
+  - meth
+  - methamphetamine
+  - crystal
+
+medium:
+  - plug
+  - connect
+  - supplier
+  - dealer
+  - vendor
+  - seller
+  - traphouse
+  - trap
+  - stash
+  - onion
+  - darknet
+  - tor browser
+  - escrow
+  - pgp key
+  - wickr
+  - session
+
+context_triggers:
+  - qp
+  - quarter pound
+  - half zip
+  - oz
+  - ounce
+  - gram
+  - eighth
+  - premo
+  - exotic
+  - exotics
+  - strains
+  - indica
+  - sativa
+  - f2f
+  - meet up
+  - wtb
+  - wts
+  - pm me
+  - dm me
+  - hmu
+  - slide
+  - vouches
+  - refs
+  - pricing
+  - price list
+  - menu
+  - telegram only
+  - wickr only
+  - encrypted only
