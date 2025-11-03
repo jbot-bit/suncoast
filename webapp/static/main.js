@@ -733,6 +733,20 @@ function setupProfileEventHandlers() {
     if (editProfileBtn) {
         editProfileBtn.addEventListener('click', openEditProfileModal);
     }
+
+    // Vouch breakdown toggle
+    const vouchBreakdownToggle = document.getElementById('vouchBreakdownToggle');
+    if (vouchBreakdownToggle) {
+        vouchBreakdownToggle.addEventListener('click', () => {
+            const content = document.getElementById('vouchBreakdownContent');
+            const icon = vouchBreakdownToggle.querySelector('.toggle-icon');
+            if (content && icon) {
+                const isOpen = content.style.display !== 'none';
+                content.style.display = isOpen ? 'none' : 'block';
+                icon.textContent = isOpen ? '▼' : '▲';
+            }
+        });
+    }
 }
 
 // Helper function to create profile card HTML
@@ -745,12 +759,13 @@ function createProfileCardHTML(user, data) {
     const ratingPercentage = data.user.rating_percentage || 100;
     const streakDays = data.user.streak_days || 0;
 
-    // NEW: Dual-metric system
-    const reputationPoints = data.user.reputation_points || 0;
-    const behaviorPoints = data.user.behavior_points || 0;
-    const behaviorRank = data.user.behavior_rank || 'new';
-    const behaviorRankEmoji = data.user.behavior_rank_emoji || '🧱';
-    const behaviorRankName = data.user.behavior_rank_name || 'New';
+    // NEW: Simplified rank + level system
+    const activityPoints = data.user.activity_points || 0;
+    const currentLevel = data.user.current_level || 1;
+    const levelDisplay = data.user.level_display || 'Lvl 1 ★';
+    const progressData = data.user.level_progress || {};
+    const pointsToNext = progressData.points_needed || 0;
+    const levelProgress = progressData.progress_percent || 0;
 
     const bioSection = data.user.bio ? `
         <div class="profile-bio" id="profileBio">
@@ -776,53 +791,65 @@ function createProfileCardHTML(user, data) {
 
     const streakClass = streakDays > 0 ? 'active-streak' : '';
     const streakText = streakDays > 0 ? `🔥 ${streakDays}` : '0';
+    const totalVouches = positiveVotes + negativeVotes;
+
+    // Profile photo
+    const profilePhotoHTML = data.user.profile_picture_url 
+        ? `<div class="avatar" id="profileAvatar" style="background-image: url(${API_BASE}/api/photo-proxy/${data.user.profile_picture_url}); background-size: cover; background-position: center;"></div>`
+        : `<div class="avatar" id="profileAvatar">👤</div>`;
+
+    // Telegram profile link
+    const telegramUsername = user.username || null;
+    const telegramLink = telegramUsername ? `https://t.me/${telegramUsername}` : `tg://user?id=${user.telegram_user_id}`;
 
     return `
         <div class="profile-card">
             <div class="profile-header">
-                <div class="avatar" id="profileAvatar">👤</div>
+                <a href="${telegramLink}" target="_blank" class="avatar-link" title="Open in Telegram">
+                    ${profilePhotoHTML}
+                </a>
                 <div class="profile-info">
-                    <h2 id="profileName">@${escapeHtml(username)}</h2>
+                    <a href="${telegramLink}" target="_blank" class="profile-name-link" title="Open in Telegram">
+                        <h2 id="profileName">@${escapeHtml(username)}</h2>
+                    </a>
                     <div class="rank-badge-large ${data.user.rank}" id="profileRank">${rankEmoji} ${rankName}</div>
-                    <div class="${ratingClass}" id="ratingDisplay">
-                        <div class="rating-percentage">${Math.round(ratingPercentage)}%</div>
-                        <div class="rating-label">Trust Rating</div>
-                    </div>
                 </div>
-                <button class="btn-icon" id="editProfileBtn" title="Edit Profile" aria-label="Edit Profile"></button>
+                <button class="btn-icon" id="editProfileBtn" title="Edit Profile" aria-label="Edit Profile">✏️</button>
             </div>
 
             ${bioSection}
             ${locationSection}
 
-            <div class="dual-metrics-section" style="background: var(--bg-elevated); border-radius: 12px; padding: 16px; margin: 16px 0; display: grid; grid-template-columns: 1fr 1fr; gap: 16px; border: 1px solid var(--border);">
-                <div style="text-align: center;">
-                    <div style="font-size: 24px; font-weight: 700; color: var(--accent);">${reputationPoints.toFixed(1)}</div>
-                    <div style="font-size: 13px; color: var(--text-secondary); margin-top: 4px;">Reputation</div>
-                    <div style="font-size: 12px; color: var(--text-tertiary); margin-top: 2px;">${rankEmoji} ${rankName}</div>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-value" id="totalVouchCount">${totalVouches}</div>
+                    <div class="stat-label">Total Vouches</div>
                 </div>
-                <div style="text-align: center;">
-                    <div style="font-size: 24px; font-weight: 700; color: var(--accent);">${behaviorPoints}</div>
-                    <div style="font-size: 13px; color: var(--text-secondary); margin-top: 4px;">Activity</div>
-                    <div style="font-size: 12px; color: var(--text-tertiary); margin-top: 2px;">${behaviorRankEmoji} ${behaviorRankName}</div>
+                <div class="stat-card streak-card ${streakClass}">
+                    <div class="stat-value" id="streakCount">${streakText}</div>
+                    <div class="stat-label">Day Streak</div>
                 </div>
             </div>
 
-            <div class="stats-grid">
-                <div class="stat-card positive-votes">
-                    <div class="stat-icon"></div>
-                    <div class="stat-value" id="positiveVotes">${positiveVotes}</div>
-                    <div class="stat-label">Positive</div>
-                </div>
-                <div class="stat-card negative-votes">
-                    <div class="stat-icon"></div>
-                    <div class="stat-value" id="negativeVotes">${negativeVotes}</div>
-                    <div class="stat-label">Negative</div>
-                </div>
-                <div class="stat-card streak-card ${streakClass}">
-                    <div class="stat-icon"></div>
-                    <div class="stat-value" id="streakCount">${streakText}</div>
-                    <div class="stat-label">Day Streak</div>
+            <!-- Vouch Breakdown Dropdown -->
+            <div class="vouch-breakdown-section">
+                <button class="vouch-breakdown-toggle" id="vouchBreakdownToggle">
+                    <span>📊 Vouch Breakdown</span>
+                    <span class="toggle-icon">▼</span>
+                </button>
+                <div class="vouch-breakdown-content" id="vouchBreakdownContent" style="display: none;">
+                    <div class="breakdown-stats">
+                        <div class="breakdown-item positive">
+                            <span class="breakdown-icon">👍</span>
+                            <span class="breakdown-label">Positive</span>
+                            <span class="breakdown-value" id="positiveVotes">${positiveVotes}</span>
+                        </div>
+                        <div class="breakdown-item negative">
+                            <span class="breakdown-icon">👎</span>
+                            <span class="breakdown-label">Negative</span>
+                            <span class="breakdown-value" id="negativeVotes">${negativeVotes}</span>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -838,12 +865,10 @@ function createProfileCardHTML(user, data) {
 
             <div class="action-buttons">
                 <button class="btn btn-primary" id="requestVouchBtn">
-                    <span class="btn-icon-left"></span>
-                    Request Vouch
+                    💬 Request Vouch
                 </button>
                 <button class="btn btn-secondary" id="shareProfileBtn">
-                    <span class="btn-icon-left"></span>
-                    Share Profile
+                    📤 Share Profile
                 </button>
             </div>
         </div>
@@ -961,16 +986,35 @@ function renderVouches(containerId, vouches, showEditButton = false) {
         const canEdit = showEditButton && currentUser && vouch.from_user_id === currentUser.telegram_user_id;
         const editedBadge = vouch.updated_at ? '<span style="color: #888; font-size: 11px; margin-left: 8px;">(edited)</span>' : '';
 
+        // Profile photo for vouch user
+        const vouchUserId = showEditButton ? vouch.to_user_id : vouch.from_user_id;
+        const vouchUsername = showEditButton ? vouch.to_username : vouch.username;
+        const photoHTML = vouch.profile_picture_url 
+            ? `<div class="vouch-avatar" style="background-image: url(${API_BASE}/api/photo-proxy/${vouch.profile_picture_url}); background-size: cover; background-position: center;"></div>`
+            : `<div class="vouch-avatar">👤</div>`;
+
+        // Telegram link
+        const telegramLink = vouchUsername ? `https://t.me/${vouchUsername}` : `tg://user?id=${vouchUserId}`;
+
         return `
         <div class="vouch-item ${isPending ? 'pending' : ''}" data-vouch-id="${vouch.id}">
             <div class="vouch-header">
-                <span class="vouch-user">${escapeHtml(displayName)}</span>
-                <span class="vouch-date">${formatDate(vouch.created_at)}${editedBadge}</span>
+                <div class="vouch-user-info">
+                    <a href="${telegramLink}" target="_blank" class="vouch-avatar-link" title="Open in Telegram">
+                        ${photoHTML}
+                    </a>
+                    <div class="vouch-user-details">
+                        <a href="${telegramLink}" target="_blank" class="vouch-user-link" title="Open in Telegram">
+                            <span class="vouch-user">${escapeHtml(displayName)}</span>
+                        </a>
+                        <span class="vouch-date">${formatDate(vouch.created_at)}${editedBadge}</span>
+                    </div>
+                </div>
             </div>
-            ${statusBadge ? `<div style="margin-top: 4px;">${statusBadge}</div>` : ''}
-            ${vouch.message ? `<div class="vouch-message">"${sanitizeMessage(vouch.message)}"</div>` : ''}
+            ${statusBadge ? `<div style="margin-top: 4px; margin-left: 44px;">${statusBadge}</div>` : ''}
+            ${vouch.message ? `<div class="vouch-message" style="margin-left: 44px;">"${sanitizeMessage(vouch.message)}"</div>` : ''}
             ${canEdit ? `
-                <div class="vouch-actions">
+                <div class="vouch-actions" style="margin-left: 44px;">
                     <button class="btn-edit" data-vouch-id="${vouch.id}" data-vouch-message="${escapeHtml(vouch.message || '')}">✏️ Edit</button>
                     <button class="btn-delete" data-vouch-id="${vouch.id}" data-vouch-to="${escapeHtml(displayName)}">🗑️ Delete</button>
                 </div>
@@ -1374,15 +1418,18 @@ function renderLeaderboard(users, boardType) {
             ? `<div class="lb-avatar" style="background-image: url(${API_BASE}/api/photo-proxy/${user.profile_picture_url}); background-size: cover; background-position: center; width: 32px; height: 32px; border-radius: 50%; margin-right: 12px;"></div>`
             : `<div class="lb-avatar" style="width: 32px; height: 32px; border-radius: 50%; background: var(--bg-secondary); display: flex; align-items: center; justify-content: center; margin-right: 12px; font-size: 16px;">👤</div>`;
         
+        // Telegram link
+        const telegramLink = user.username ? `https://t.me/${user.username}` : `tg://user?id=${user.telegram_user_id}`;
+        
         return `
-            <div class="leaderboard-item" data-user-id="${user.telegram_user_id}" style="display: flex; align-items: center; cursor: pointer;">
+            <a href="${telegramLink}" target="_blank" class="leaderboard-item" data-user-id="${user.telegram_user_id}" style="display: flex; align-items: center; text-decoration: none; color: inherit; cursor: pointer;" title="Open in Telegram">
                 <div class="lb-position">${medal}</div>
                 ${photoHTML}
                 <div class="lb-info">
                     <div class="lb-name">@${name}</div>
                     <div class="lb-stat">${user.rank_emoji} ${user.rank_name} • ${extraStat}</div>
                 </div>
-            </div>
+            </a>
         `;
     }).join('');
 }
@@ -1405,15 +1452,18 @@ function renderCommunityGrid(users) {
         const behaviorPoints = user.behavior_points || 0;
         const behaviorRankEmoji = user.behavior_rank_emoji || '🧱';
 
+        // Telegram link
+        const telegramLink = user.username ? `https://t.me/${user.username}` : `tg://user?id=${user.telegram_user_id}`;
+
         return `
-            <div class="community-card" data-user-id="${user.telegram_user_id}">
+            <a href="${telegramLink}" target="_blank" class="community-card" data-user-id="${user.telegram_user_id}" style="text-decoration: none; color: inherit; display: block;" title="Open in Telegram">
                 ${photoHTML}
                 <div class="community-name">@${user.username || user.first_name}</div>
                 <div class="community-rank">${user.rank_emoji} ${user.rank_name}</div>
                 <div class="community-vouches" style="font-size: 12px; color: var(--text-secondary);">
                     Rep ${reputationPoints.toFixed(1)} • ${behaviorRankEmoji} ${behaviorPoints} pts
                 </div>
-            </div>
+            </a>
         `;
     }).join('');
 }

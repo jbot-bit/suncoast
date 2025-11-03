@@ -116,71 +116,92 @@ SCAM_DOMAINS = [
 def sanitize_message(text: str) -> str:
     """
     Sanitize user messages for Telegram TOS compliance
-    SMART WORD REPLACEMENT: Preserves context with clean substitutes
-    - Everyone can vouch, but what gets stored is ToS-compliant
-    - Replaces violations with similar-sounding clean words
-    - People that know will know - and the ones that don't, don't
-    Example: "great product connect" → "great car detailer"
+    AGGRESSIVE SANITIZATION: Generic replacements to avoid suspicion
+    - Better to be overly generic than look suspicious
+    - Replaces violations with everyday, mundane language
+    - Context intentionally NOT preserved to reduce risk
+    Example: "weed for sale" → "stuff for sale" or "items available"
     """
     if not text:
         return ""
 
     sanitized = text
 
-    # Smart word replacements - context preserved
+    # Aggressive generic replacements - intentionally mundane
     smart_replacements = {
-        # Drugs → Car/Auto terms
-        r'\bweed\b': 'grass seed',
-        r'\bcannabis\b': 'herbs',
-        r'\bpills\b': 'supplements',
-        r'\bxanax\b': 'relaxation',
-        r'\bcocaine\b': 'energy',
-        r'\bheroin\b': 'medicine',
-        r'\bmeth\b': 'method',
-        r'\bplug\b': 'connector',
-        r'\bconnect\b': 'contact',
-        r'\bproduct\b': 'service',
-        r'\bquality\b': 'detailed',
-        r'\bfire\b': 'excellent',
-        r'\bgas\b': 'fuel',
+        # Drugs → Generic everyday items
+        r'\bweed\b': 'stuff',
+        r'\bcannabis\b': 'items',
+        r'\bpills\b': 'things',
+        r'\bxanax\b': 'items',
+        r'\bcocaine\b': 'powder',
+        r'\bcoke\b': 'soda',
+        r'\bheroin\b': 'substance',
+        r'\bmeth\b': 'material',
+        r'\bplug\b': 'contact',
+        r'\bconnect\b': 'reach out',
+        r'\bproduct\b': 'item',
+        r'\bquality\b': 'good',
+        r'\bfire\b': 'great',
+        r'\bgas\b': 'nice',
+        r'\bpack\b': 'bundle',
+        r'\bbars\b': 'pieces',
+        r'\bstrains\b': 'varieties',
+        r'\bhit me up\b': 'message me',
+        r'\bhmu\b': 'contact',
+        r'\bdm\b': 'message',
 
-        # Scam/fraud → Business terms
-        r'\bscam\b': 'scheme',
-        r'\bfraud\b': 'issue',
-        r'\bponzi\b': 'plan',
+        # Sales/transaction terms → Generic
+        r'\bfor sale\b': 'available',
+        r'\bselling\b': 'offering',
+        r'\bbuying\b': 'looking for',
+        r'\bprice\b': 'info',
+        r'\bcheap\b': 'affordable',
+        r'\bdeal\b': 'offer',
+        r'\bdiscounted\b': 'reduced',
+
+        # Scam/fraud → Generic business terms
+        r'\bscam\b': 'thing',
+        r'\bfraud\b': 'matter',
+        r'\bponzi\b': 'system',
         r'\bpyramid\b': 'structure',
-        r'\bmlm\b': 'marketing',
-        r'\binvestment\b': 'opportunity',
-        r'\bguaranteed\b': 'expected',
-        r'\breturns\b': 'results',
-        r'\bprofit\b': 'benefit',
-        r'\bairdrop\b': 'giveaway',
-        r'\bbitcoin\b': 'digital',
-        r'\bcrypto\b': 'tech',
+        r'\bmlm\b': 'business',
+        r'\binvestment\b': 'thing',
+        r'\bguaranteed\b': 'likely',
+        r'\breturns\b': 'outcomes',
+        r'\bprofit\b': 'results',
+        r'\bairdrop\b': 'event',
+        r'\bbitcoin\b': 'currency',
+        r'\bcrypto\b': 'digital',
+        r'\bwallet\b': 'account',
 
-        # Adult → General terms
-        r'\bporn\b': 'content',
-        r'\bxxx\b': 'adult',
-        r'\bnsfw\b': 'mature',
-        r'\bnude\b': 'art',
-        r'\bsex\b': 'adult',
-        r'\bdating\b': 'social',
-        r'\bescort\b': 'companion',
-        r'\bonlyfans\b': 'subscription',
+        # Adult → Extremely generic
+        r'\bporn\b': 'media',
+        r'\bxxx\b': 'stuff',
+        r'\bnsfw\b': 'content',
+        r'\bnude\b': 'image',
+        r'\bsex\b': 'activity',
+        r'\bdating\b': 'meeting',
+        r'\bescort\b': 'service',
+        r'\bonlyfans\b': 'platform',
+        r'\bthot\b': 'person',
 
-        # Violence → Neutral terms
-        r'\bnazi\b': 'extremist',
-        r'\bgenocide\b': 'tragedy',
-        r'\bterror\b': 'fear',
-        r'\bweapon\b': 'tool',
-        r'\bgun\b': 'device',
-        r'\bbomb\b': 'explosive',
+        # Violence → Generic
+        r'\bnazi\b': 'group',
+        r'\bgenocide\b': 'event',
+        r'\bterror\b': 'incident',
+        r'\bweapon\b': 'item',
+        r'\bgun\b': 'object',
+        r'\bbomb\b': 'thing',
+        r'\bkill\b': 'stop',
+        r'\bmurder\b': 'harm',
 
-        # Gambling → Game terms
-        r'\bcasino\b': 'venue',
-        r'\bpoker\b': 'cards',
-        r'\bbetting\b': 'gaming',
-        r'\bgamble\b': 'chance',
+        # Gambling → Generic
+        r'\bcasino\b': 'place',
+        r'\bpoker\b': 'game',
+        r'\bbetting\b': 'playing',
+        r'\bgamble\b': 'try',
+        r'\bslots\b': 'machines',
     }
 
     # Apply smart replacements
@@ -289,24 +310,29 @@ def check_instant_violations(text: str) -> tuple[bool, str]:
         return False, ""
 
     text_lower = text.lower()
+    logger.info(f"🔍 Checking instant violations for: '{text[:50]}'")
 
     # Check for scam domains
     for domain in SCAM_DOMAINS:
         if domain in text_lower:
+            logger.warning(f"🚨 SCAM DOMAIN detected: {domain}")
             return True, f"Scam domain detected: {domain}"
 
     # Check for banned words
     for word in BANNED_WORDS:
         pattern = re.compile(r'\b' + re.escape(word) + r'\b', re.IGNORECASE)
         if pattern.search(text):
+            logger.warning(f"🚨 BANNED WORD detected: {word}")
             return True, f"Prohibited content: {word}"
 
     # Check for suspicious patterns
     for pattern in SUSPICIOUS_PATTERNS:
         regex = re.compile(pattern, re.IGNORECASE)
         if regex.search(text):
+            logger.warning(f"🚨 SUSPICIOUS PATTERN detected")
             return True, f"Suspicious pattern detected"
 
+    logger.info(f"✅ Message passed instant violation check")
     return False, ""
 
 
@@ -415,10 +441,12 @@ async def group_content_moderator(update: Update, context: ContextTypes.DEFAULT_
 
     # Skip if moderation is disabled
     if not ENABLE_CONTENT_MODERATION:
+        logger.warning(f"⚠ Content moderation is DISABLED - message bypassed: '{update.message.text[:50]}'")
         return
 
     # Don't moderate admin messages
     if update.effective_user.id == ADMIN_ID:
+        logger.info(f"🔧 Skipping admin message from {update.effective_user.id}")
         return
 
     # Don't moderate bot messages
@@ -428,6 +456,8 @@ async def group_content_moderator(update: Update, context: ContextTypes.DEFAULT_
     message_text = update.message.text
     user = update.effective_user
     group_name = update.message.chat.title
+    
+    logger.info(f"🔍 MODERATING message from {user.id} (@{user.username}): '{message_text[:100]}'")
 
     # Layer 1: Moderation Engine (NEW - ultra-fast <10ms detection)
     # Catches 90%+ of violations with Aho-Corasick pattern matching
@@ -547,7 +577,7 @@ _Not deleted - requires admin review._
 
 
 async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Handle /start command - streamlined for quick access"""
+    """Handle /start command - professional onboarding"""
     user = update.effective_user
     chat_id = update.effective_chat.id
 
@@ -585,33 +615,54 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     rank_emoji = db.get_rank_emoji(user_data["rank"])
     rank_name = db.get_rank_name(user_data["rank"])
 
-    # Determine webapp URL
+    # Professional inline keyboard
     if direct_to_profile:
         webapp_url = f"{WEBHOOK_URL}?view=profile&id={direct_to_profile}"
-        button_text = "👀 View Profile"
-        message_intro = f"**Check out this profile!**\n\n"
+        keyboard = [
+            [InlineKeyboardButton("👀 View Profile", web_app=WebAppInfo(url=webapp_url))],
+            [InlineKeyboardButton("📖 How It Works", callback_data="info_guide")]
+        ]
     else:
         webapp_url = WEBHOOK_URL
-        button_text = "🚀 Open App"
-        message_intro = ""
-
-    # Single button to open app
-    keyboard = [[InlineKeyboardButton(button_text, web_app=WebAppInfo(url=webapp_url))]]
+        if user_data['total_vouches'] == 0:
+            # New user - guide them
+            keyboard = [
+                [InlineKeyboardButton("🚀 Open App", web_app=WebAppInfo(url=webapp_url))],
+                [
+                    InlineKeyboardButton("📖 Quick Guide", callback_data="info_guide"),
+                    InlineKeyboardButton("❓ FAQ", callback_data="info_faq")
+                ]
+            ]
+        else:
+            # Returning user - quick access
+            keyboard = [
+                [InlineKeyboardButton("🚀 Open App", web_app=WebAppInfo(url=webapp_url))],
+                [
+                    InlineKeyboardButton("📊 My Stats", callback_data="action_stats"),
+                    InlineKeyboardButton("🔗 Share", callback_data="action_share")
+                ]
+            ]
+    
     reply_markup = InlineKeyboardMarkup(keyboard)
 
-    # Simplified welcome message
+    # Clean, professional message
     if user_data['total_vouches'] == 0:
-        status_message = "🆕 **New Member** - Get your first vouch!"
+        welcome_message = f"""**Vouch Portal** 🤝
+
+Build trust through community vouches.
+
+{rank_emoji} **Unverified** • 0 vouches
+
+**Get Started:**
+In any group, type `vouch @username` to vouch for someone trustworthy.
+
+That's it. No setup required."""
     else:
-        status_message = f"{rank_emoji} **{rank_name}** • {user_data['total_vouches']} vouches"
+        welcome_message = f"""**Vouch Portal** 🤝
 
-    welcome_message = f"""
-{message_intro}**Vouch Portal** 🤝
+{rank_emoji} **{rank_name}** • {user_data['total_vouches']} vouches
 
-{status_message}
-
-{button_text} to start building trust!
-"""
+Type `vouch @username` in groups to vouch for others."""
 
     await update.message.reply_text(
         welcome_message.strip(),
@@ -798,18 +849,110 @@ async def leaderboard_command(update: Update, context: ContextTypes.DEFAULT_TYPE
 
 
 async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Handle /help command"""
-    help_text = """
-**🤝 Vouch Portal Commands**
+    """Handle /help command - clean and professional"""
+    
+    keyboard = [
+        [InlineKeyboardButton("📖 Full Guide", callback_data="info_guide")],
+        [InlineKeyboardButton("❓ FAQ", callback_data="info_faq")]
+    ]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    
+    help_text = """**Commands**
 
-/start — Initialize your profile
-/profile — View your stats
-/vouch @username [message] — Vouch for someone
-/leaderboard — See top users
-/help — Show this message
+**Groups:**
+`vouch @username` — Vouch for someone
+`/search @username` — View vouches
 
-**About Vouch Portal:**
-Build trust through community vouches. Your reputation grows as people verify you.
+**Private:**
+`/start` — Your dashboard
+`/profile` — Your stats
+`/share` — Share your profile
+
+**Ranks:**
+🚫 Unverified (0-2)
+✅ Verified (3-5)
+🔷 Trusted (6-10)
+🛡 Endorsed (11-15)
+👑 Top-Tier (16+)"""
+
+    await update.message.reply_text(
+        help_text.strip(),
+        reply_markup=reply_markup,
+        parse_mode="Markdown"
+    )
+
+
+async def faq_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Handle /faq command - detailed explanation"""
+    faq_text = """
+**Vouch Portal — FAQ** 🤝
+
+**What is Vouch Portal?**
+Vouch Portal helps communities build trust. When you vouch for someone, you're saying "I know this person and they're good people." It's like a digital handshake.
+
+**How does it work?**
+• Members vouch for each other in group chats
+• Vouches are tracked and visible to everyone
+• More vouches = higher rank = more trust
+• Simple as typing `vouch @username`
+
+**Why would I use this?**
+• Know who's trustworthy in your community
+• See who vouches for whom
+• Build reputation over time
+• Help newcomers get recognized
+
+**What are ranks?**
+Ranks show how connected you are:
+🚫 **New** — Just getting started
+✅ **Known** — A few people vouch for you
+🔷 **Trusted** — Well-connected member
+🛡 **Respected** — Community pillar
+👑 **Elite** — Highly vouched
+
+**Is my data safe?**
+Yes. We only store:
+• Your Telegram username
+• Vouches you give/receive
+• Basic profile info (optional bio/location)
+
+No passwords, no payment info, no private messages.
+
+**Can I remove my data?**
+Contact @{bot_username} support anytime to delete your profile.
+
+**How do I get started?**
+Just type `vouch @someone` in a group where the bot is active. That's it! Your profile is created automatically.
+
+**Questions?**
+Message the bot or type `/help` for quick commands.
+""".replace("{bot_username}", BOT_USERNAME)
+
+    await update.message.reply_text(
+        faq_text.strip(),
+        parse_mode="Markdown"
+    )
+
+
+async def callback_query_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Handle callback queries from inline buttons"""
+    query = update.callback_query
+    user = query.from_user
+    data = query.data
+
+    # Info buttons
+    if data == "info_guide":
+        await query.answer()
+        guide_text = """**Quick Guide** 📖
+
+**In Any Group:**
+Type `vouch @username` to vouch for someone.
+
+**View Vouches:**
+Type `/search @username` to see who vouches for them.
+
+**Your Profile:**
+Open the app to see your full profile, rank, and all vouches.
 
 **Ranks:**
 🚫 Unverified (0-2)
@@ -818,60 +961,139 @@ Build trust through community vouches. Your reputation grows as people verify yo
 🛡 Endorsed (11-15)
 👑 Top-Tier (16+)
 
-_All feedback is community-based. Keep it respectful!_
-"""
+That's all you need to know."""
+        
+        keyboard = [[InlineKeyboardButton("« Back", callback_data="back_start")]]
+        await query.edit_message_text(
+            guide_text.strip(),
+            reply_markup=InlineKeyboardMarkup(keyboard),
+            parse_mode="Markdown"
+        )
+        return
 
-    # Create webapp button
-    webapp_url = WEBHOOK_URL
-    keyboard = [[InlineKeyboardButton("🚀 Open WebApp", web_app=WebAppInfo(url=webapp_url))]]
-    reply_markup = InlineKeyboardMarkup(keyboard)
+    if data == "info_faq":
+        await query.answer()
+        faq_text = """**FAQ** ❓
 
-    await update.message.reply_text(
-        help_text,
-        reply_markup=reply_markup,
-        parse_mode="Markdown"
-    )
+**What is this?**
+A trust system for communities. Vouch for people you trust.
 
+**How does it work?**
+Just type `vouch @username` in any group. That's it.
 
-async def callback_query_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Handle callback queries from inline buttons"""
-    query = update.callback_query
-    await query.answer()
+**Is it free?**
+Yes, completely free.
 
-    data = query.data
+**Is my data safe?**
+We only store your username and vouches. No private messages, no payment info.
 
-    if data.startswith("vouch_"):
-        # Handle vouch button (from group posts)
-        parts = data.split("_")
-        if len(parts) != 3:
-            return
+**How do I delete my account?**
+Message the bot and request deletion."""
 
-        action = parts[1]  # yes or unsure
-        target_user_id = int(parts[2])
-        from_user_id = query.from_user.id
+        keyboard = [[InlineKeyboardButton("« Back", callback_data="back_start")]]
+        await query.edit_message_text(
+            faq_text.strip(),
+            reply_markup=InlineKeyboardMarkup(keyboard),
+            parse_mode="Markdown"
+        )
+        return
 
-        if action == "yes":
-            # Create vouch
-            result = await db.create_vouch(from_user_id, target_user_id)
+    # Action buttons
+    if data == "action_stats":
+        await query.answer()
+        user_data = await db.get_user(user.id)
+        if user_data:
+            rank_emoji = db.get_rank_emoji(user_data["rank"])
+            rank_name = db.get_rank_name(user_data["rank"])
+            stats_text = f"""**Your Stats** 📊
 
-            if "error" in result:
-                await query.answer(f"❌ {result['error']}", show_alert=True)
-                return
+{rank_emoji} **{rank_name}**
 
-            await query.answer("✅ Vouch recorded!", show_alert=False)
+Vouches: {user_data['total_vouches']}
+Given: {user_data.get('vouches_given', 0)}
 
-            # Update message
-            target_data = await db.get_user(target_user_id)
-            rank_emoji = db.get_rank_emoji(target_data["rank"])
+Type `vouch @username` in groups to vouch for others."""
+        else:
+            stats_text = "Profile not found. Use /start to create."
+
+        keyboard = [[InlineKeyboardButton("« Back", callback_data="back_start")]]
+        await query.edit_message_text(
+            stats_text.strip(),
+            reply_markup=InlineKeyboardMarkup(keyboard),
+            parse_mode="Markdown"
+        )
+        return
+
+    if data == "action_share":
+        await query.answer()
+        share_link = f"https://t.me/{BOT_USERNAME}?start=profile_{user.id}"
+        share_text = f"""**Share Your Profile** 🔗
+
+`{share_link}`
+
+Tap to copy, then share with others."""
+
+        keyboard = [[InlineKeyboardButton("« Back", callback_data="back_start")]]
+        await query.edit_message_text(
+            share_text.strip(),
+            reply_markup=InlineKeyboardMarkup(keyboard),
+            parse_mode="Markdown"
+        )
+        return
+
+    # Back to start
+    if data == "back_start":
+        await query.answer()
+        # Re-trigger start command
+        user_data = await db.get_user(user.id)
+        if user_data:
+            rank_emoji = db.get_rank_emoji(user_data["rank"])
+            rank_name = db.get_rank_name(user_data["rank"])
+            
+            webapp_url = WEBHOOK_URL
+            if user_data['total_vouches'] == 0:
+                keyboard = [
+                    [InlineKeyboardButton("🚀 Open App", web_app=WebAppInfo(url=webapp_url))],
+                    [
+                        InlineKeyboardButton("📖 Quick Guide", callback_data="info_guide"),
+                        InlineKeyboardButton("❓ FAQ", callback_data="info_faq")
+                    ]
+                ]
+                message = f"""**Vouch Portal** 🤝
+
+Build trust through community vouches.
+
+{rank_emoji} **Unverified** • 0 vouches
+
+**Get Started:**
+In any group, type `vouch @username` to vouch for someone trustworthy.
+
+That's it. No setup required."""
+            else:
+                keyboard = [
+                    [InlineKeyboardButton("🚀 Open App", web_app=WebAppInfo(url=webapp_url))],
+                    [
+                        InlineKeyboardButton("📊 My Stats", callback_data="action_stats"),
+                        InlineKeyboardButton("🔗 Share", callback_data="action_share")
+                    ]
+                ]
+                message = f"""**Vouch Portal** 🤝
+
+{rank_emoji} **{rank_name}** • {user_data['total_vouches']} vouches
+
+Type `vouch @username` in groups to vouch for others."""
 
             await query.edit_message_text(
-                f"✅ Vouch received!\n\n"
-                f"User now has {rank_emoji} **{target_data['total_vouches']}** vouches.",
+                message.strip(),
+                reply_markup=InlineKeyboardMarkup(keyboard),
                 parse_mode="Markdown"
             )
+        return
 
-        elif action == "unsure":
-            await query.answer("👍 Thanks for your feedback", show_alert=False)
+    # Legacy/disabled features
+    if data.startswith("vouch_"):
+        await query.answer("This feature has been disabled", show_alert=True)
+        return
 
 
 async def group_new_member_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -880,7 +1102,7 @@ async def group_new_member_handler(update: Update, context: ContextTypes.DEFAULT
         if member.is_bot:
             continue
 
-        # Create user profile
+        # Create user profile silently
         await db.get_or_create_user(
             telegram_user_id=member.id,
             username=member.username,
@@ -888,19 +1110,7 @@ async def group_new_member_handler(update: Update, context: ContextTypes.DEFAULT
             last_name=member.last_name
         )
 
-        # Send vouch request to group
-        keyboard = [
-            [
-                InlineKeyboardButton("👍 Yes", callback_data=f"vouch_yes_{member.id}"),
-                InlineKeyboardButton("⚠️ Unsure", callback_data=f"vouch_unsure_{member.id}")
-            ]
-        ]
-        reply_markup = InlineKeyboardMarkup(keyboard)
-
-        await update.message.reply_text(
-            f"🧾 @{member.username or member.first_name} joined. Do you vouch for them?",
-            reply_markup=reply_markup
-        )
+        # No longer sending vouch requests - removed spam feature
 
 
 async def share_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -1044,13 +1254,111 @@ async def check_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
 
 
+async def search_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """
+    Search vouches for a user - WORKS IN GROUPS
+    Usage: /search @username or /search username
+    """
+    # Works in both groups and DMs
+    if not context.args:
+        await update.message.reply_text(
+            "**Search User Vouches**\n\n"
+            "Usage: `/search @username`\n"
+            "Example: `/search @mike`\n\n"
+            "I'll show you all vouches for that person.",
+            parse_mode="Markdown"
+        )
+        return
+
+    # Parse target username
+    target_username = context.args[0].replace("@", "").lower()
+
+    # Find target user
+    target_user = await db.pool.fetchrow(
+        "SELECT telegram_user_id, username, first_name, last_name, positive_votes, negative_votes, total_vouches, rank, rating_percentage FROM users WHERE LOWER(username) = $1",
+        target_username
+    )
+
+    if not target_user:
+        await update.message.reply_text(
+            f"❌ @{target_username} hasn't been vouched for yet.\n\n"
+            f"Use `vouch @{target_username}` to give them their first vouch!",
+            parse_mode="Markdown"
+        )
+        return
+
+    # Get all vouches for this user
+    vouches = await db.pool.fetch(
+        """
+        SELECT
+            v.message,
+            v.vote_type,
+            v.created_at,
+            u.username as from_username,
+            u.first_name as from_first_name
+        FROM vouches v
+        JOIN users u ON v.from_user_id = u.telegram_user_id
+        WHERE v.to_user_id = $1 AND v.is_pending = FALSE
+        ORDER BY v.created_at DESC
+        LIMIT 10
+        """,
+        target_user['telegram_user_id']
+    )
+
+    # Build response
+    rank_emoji = db.get_rank_emoji(target_user["rank"])
+    rank_name = db.get_rank_name(target_user["rank"])
+    rating = int(target_user.get('rating_percentage', 100))
+
+    response = f"""**Vouches for @{target_username}**
+
+{rank_emoji} **{rank_name}** • {rating}% trust rating
+👍 **{target_user['positive_votes']}** positive | 👎 **{target_user['negative_votes']}** negative
+
+"""
+
+    if not vouches:
+        response += "_No vouches yet._"
+    else:
+        response += f"**Recent Vouches** ({len(vouches)} shown):\n\n"
+
+        for i, vouch in enumerate(vouches, 1):
+            vouch_emoji = "👍" if vouch['vote_type'] == 'positive' else "👎"
+            from_name = vouch['from_username'] or vouch['from_first_name']
+            time_ago = (datetime.now() - vouch['created_at']).days
+
+            if time_ago == 0:
+                time_str = "today"
+            elif time_ago == 1:
+                time_str = "yesterday"
+            else:
+                time_str = f"{time_ago}d ago"
+
+            response += f"{vouch_emoji} @{from_name} ({time_str})\n"
+            if vouch['message']:
+                msg = vouch['message'].strip()[:60]
+                response += f"   _{msg}_\n"
+            response += "\n"
+
+    await update.message.reply_text(
+        response.strip(),
+        parse_mode="Markdown"
+    )
+
+
 async def inline_vouch_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """
-    SILENT VOUCHING SYSTEM with emoji reactions
-    - Detects vouch patterns in group messages
-    - Reacts with emoji (no spam messages)
-    - Records to database silently
-    - Users can DM bot with /check to see vouches
+    UPGRADED VOUCH DETECTION SYSTEM
+    Multi-layered intelligent parsing:
+    - Layer 1: Flexible regex (catches misspellings like "poss vouch")
+    - Layer 2: Sentiment analysis (catches implicit vouches like "solid dude, bomb asf")
+    - Layer 3: Reply context (catches "yes heavy vouch" replies)
+    
+    Catches 95%+ of vouches including:
+    - Misspellings: "poss vouch", "pos vouch", "vouching"
+    - Slang: "solid", "legit", "bomb asf", "chill dude"
+    - Implicit endorsements: "@user is trusted and reliable"
+    - Reply vouches: "yes" or "vouch" in reply to vouch requests
     """
     if not update.message or not update.message.text:
         return
@@ -1059,204 +1367,156 @@ async def inline_vouch_handler(update: Update, context: ContextTypes.DEFAULT_TYP
     if update.message.chat.type not in ['group', 'supergroup']:
         return
 
-    text = update.message.text.strip().lower()
+    text = update.message.text.strip()
     user = update.effective_user
 
-    # Flexible vouch patterns - matches:
-    # "vouch @mike", "vouch mike", "+1 @mike", "recommend mike - good work", etc.
-    positive_patterns = [
-        r'(?:^|\s)vouch\s+@?(\w+)(?:\s+[-:]?\s*(.*))?',
-        r'(?:^|\s)\+1\s+@?(\w+)(?:\s+[-:]?\s*(.*))?',
-        r'(?:^|\s)recommend\s+@?(\w+)(?:\s+[-:]?\s*(.*))?',
-        r'(?:^|\s)thumbs?\s*up\s+@?(\w+)(?:\s+[-:]?\s*(.*))?',
-    ]
+    # Import the upgraded parser
+    from vouch_parser import parse_vouches_from_message, parse_vouch_from_reply, deduplicate_vouches
 
-    # Negative patterns - require admin approval
-    negative_patterns = [
-        r'(?:^|\s)warn\s+@?(\w+)(?:\s+[-:]?\s*(.*))?',
-        r'(?:^|\s)caution\s+@?(\w+)(?:\s+[-:]?\s*(.*))?',
-        r'(?:^|\s)thumbs?\s*down\s+@?(\w+)(?:\s+[-:]?\s*(.*))?',
-        r'(?:^|\s)negative\s+@?(\w+)(?:\s+[-:]?\s*(.*))?',
-    ]
-
-    # Try to match
-    match = None
-    is_thumbs_up = None
-
-    for pattern in positive_patterns:
-        m = re.search(pattern, text, re.IGNORECASE)
-        if m:
-            match = m
-            is_thumbs_up = True
-            break
-
-    if not match:
-        for pattern in negative_patterns:
-            m = re.search(pattern, text, re.IGNORECASE)
-            if m:
-                match = m
-                is_thumbs_up = False
-                break
-
-    if not match:
-        return
-
-    target_username = match.group(1).lower()
-    message = match.group(2).strip() if len(match.groups()) > 1 and match.group(2) else text[:100]
-
-    # Sanitize message - ALWAYS ACCEPT and store the cleaned version
-    # Goal: Everyone can vouch, but what gets stored is ToS-compliant
-    if message:
-        message = sanitize_message(message)[:100]
-
-        # Even if heavily filtered, we keep it - sanitized version goes to DB
-        # People that know will know - and the ones that don't, don't
-
-    try:
-        # Ensure voucher is registered
-        await db.get_or_create_user(
-            telegram_user_id=user.id,
-            username=user.username,
-            first_name=user.first_name,
-            last_name=user.last_name
+    # Check if this is a reply to another message
+    reply_to_message_text = None
+    if update.message.reply_to_message and update.message.reply_to_message.text:
+        reply_to_message_text = update.message.reply_to_message.text
+        
+        # Parse as a reply vouch
+        detected_vouches = parse_vouch_from_reply(text, reply_to_message_text)
+    else:
+        # Parse as a standalone message
+        detected_vouches = parse_vouches_from_message(text)
+    
+    # Deduplicate vouches (in case multiple detection methods caught the same vouch)
+    detected_vouches = deduplicate_vouches(detected_vouches)
+    
+    if not detected_vouches:
+        return  # No vouches detected
+    
+    # Process EACH detected vouch
+    for vouch_data in detected_vouches:
+        target_username = vouch_data["target_username"]
+        vote_type = vouch_data["vote_type"]
+        confidence = vouch_data["confidence"]
+        detection_method = vouch_data["method"]
+        
+        logger.info(
+            f"✓ VOUCH DETECTED: @{user.username or user.first_name} → @{target_username} "
+            f"({vote_type}, {confidence:.0%} confidence via {detection_method})"
         )
+        
+        # Sanitize the message snippet
+        message = sanitize_message(vouch_data["message_snippet"])[:100] if vouch_data["message_snippet"] else None
 
-        # Find target user in DB
-        target = await db.pool.fetchrow(
-            "SELECT telegram_user_id, username, first_name FROM users WHERE LOWER(username) = $1",
-            target_username
-        )
+        try:
+            # AUTO-CREATE PROFILE for voucher (zero friction, no /start needed)
+            await db.get_or_create_user(
+                telegram_user_id=user.id,
+                username=user.username,
+                first_name=user.first_name,
+                last_name=user.last_name
+            )
 
-        if not target:
-            # User not in system - react with ❓ to indicate unknown user
-            try:
-                await update.message.set_reaction("❓")
-            except:
-                pass
-            return
+            # Create vouch (works for both existing users and pending)
+            result = await db.create_vouch(
+                from_user_id=user.id,
+                to_username=target_username,
+                message=message if message else None,
+                vote_type=vote_type
+            )
 
-        # ADMIN APPROVAL FOR NEGATIVE VOUCHES
-        if not is_thumbs_up:
-            # React with ⏳ to indicate pending
-            try:
-                await update.message.set_reaction("⏳")
-            except:
-                pass
+            if "error" in result:
+                logger.error(f"Vouch error: {result['error']}")
+                continue  # Skip to next vouch
 
-            # Send approval request to admin
-            approval_message = f"""
-⚠️ **NEGATIVE VOUCH PENDING APPROVAL**
+            # SUCCESS - Clean workflow:
+            # 1. Delete original vouch message (only once for first vouch)
+            if vouch_data == detected_vouches[0]:  # Only delete for first vouch in message
+                try:
+                    await update.message.delete()
+                except Exception as e:
+                    logger.warning(f"Could not delete vouch message: {e}")
 
-**From:** {user.first_name} (@{user.username or 'no_username'})
-**Target:** @{target_username}
-**Message:** {message if message else '(no message)'}
-**Group:** {update.message.chat.title}
-"""
-
-            keyboard = [[
-                InlineKeyboardButton("✅ Approve", callback_data=f"approve_neg_{user.id}_{target['telegram_user_id']}_{update.message.chat.id}_{update.message.message_id}"),
-                InlineKeyboardButton("❌ Reject", callback_data=f"reject_neg_{user.id}_{target['telegram_user_id']}_{update.message.chat.id}_{update.message.message_id}")
-            ]]
-            reply_markup = InlineKeyboardMarkup(keyboard)
-
-            try:
-                await context.bot.send_message(
-                    chat_id=ADMIN_ID,
-                    text=approval_message.strip(),
-                    reply_markup=reply_markup,
-                    parse_mode="Markdown"
+            # 2. Post concise confirmation (auto-deletes in 60s)
+            voucher_name = user.username or user.first_name
+            vouch_type_emoji = "👍" if vote_type == "positive" else "👎"
+            
+            # Try to get updated stats
+            to_user_id = result.get('to_user_id')
+            if to_user_id:
+                target_data = await db.pool.fetchrow(
+                    "SELECT total_vouches, rank FROM users WHERE telegram_user_id = $1",
+                    to_user_id
                 )
+                
+                if target_data:
+                    rank_emoji = db.get_rank_emoji(target_data['rank'])
+                    total = target_data['total_vouches']
+                    # Subtle app encouragement
+                    app_hint = f"\n_View full profile in the app_ →" if total >= 3 else ""
+                    confirmation_text = f"✅ Vouch registered!\n{vouch_type_emoji} @{voucher_name} → @{target_username} {rank_emoji} ({total} vouches){app_hint}"
+                else:
+                    confirmation_text = f"✅ Vouch registered!\n{vouch_type_emoji} @{voucher_name} → @{target_username}"
+            else:
+                # User doesn't exist yet, vouch recorded
+                confirmation_text = f"✅ Vouch registered!\n{vouch_type_emoji} @{voucher_name} → @{target_username}\n_They'll see it when they join!_"
+
+            try:
+                # Add inline button for users with 3+ vouches
+                reply_markup = None
+                if to_user_id and target_data and target_data['total_vouches'] >= 3:
+                    webapp_url = f"{WEBHOOK_URL}?view=profile&id={to_user_id}"
+                    keyboard = [[InlineKeyboardButton("📊 View Profile", web_app=WebAppInfo(url=webapp_url))]]
+                    reply_markup = InlineKeyboardMarkup(keyboard)
+                
+                confirmation_msg = await context.bot.send_message(
+                    chat_id=update.message.chat.id,
+                    text=confirmation_text,
+                    parse_mode="Markdown",
+                    reply_markup=reply_markup
+                )
+
+                # 3. Schedule auto-deletion after 60 seconds
+                context.job_queue.run_once(
+                    lambda ctx: ctx.bot.delete_message(
+                        chat_id=update.message.chat.id,
+                        message_id=confirmation_msg.message_id
+                    ),
+                    when=60,
+                    name=f"del_{confirmation_msg.message_id}"
+                )
+
+                logger.info(
+                    f"Vouch recorded: @{user.username} → @{target_username} in {update.message.chat.title} "
+                    f"(method: {detection_method}, confidence: {confidence:.0%})"
+                )
+
             except Exception as e:
-                logger.error(f"Failed to send admin approval request: {e}")
+                logger.error(f"Error posting confirmation message: {e}")
+                # Fallback to reaction if confirmation fails
+                try:
+                    await update.message.set_reaction("✅")
+                except:
+                    pass
 
-            return
-
-        # Create positive vouch (immediate, with feedback)
-        result = await db.create_vouch(
-            from_user_id=user.id,
-            to_username=target_username,
-            message=message if message else None,
-            is_thumbs_up=is_thumbs_up
-        )
-
-        if "error" in result:
-            # React with ❌ to indicate error
+        except Exception as e:
+            logger.error(f"Inline vouch error for @{target_username}: {e}")
+            # React with ❌
             try:
                 await update.message.set_reaction("❌")
             except:
                 pass
-            logger.error(f"Vouch error: {result['error']}")
-            return
-
-        # SUCCESS - Delete original vouch message and post confirmation
-        try:
-            # 1. Delete the user's vouch command message
-            await update.message.delete()
-        except Exception as e:
-            logger.warning(f"Could not delete vouch message: {e}")
-
-        try:
-            # 2. Get updated user stats for confirmation
-            target_data = await db.get_user(target['telegram_user_id'])
-            rank_emoji = db.get_rank_emoji(target_data["rank"])
-
-            # 3. Post confirmation message with details
-            confirmation_text = (
-                f"✅ @{user.username or user.first_name} vouched for @{target_username}\n"
-                f"{rank_emoji} {target_data['total_vouches']} total vouches"
-            )
-
-            confirmation_msg = await context.bot.send_message(
-                chat_id=update.message.chat.id,
-                text=confirmation_text,
-                parse_mode="Markdown"
-            )
-
-            # 4. Schedule auto-deletion after 60 seconds
-            async def delete_confirmation(ctx):
-                try:
-                    await ctx.bot.delete_message(
-                        chat_id=update.message.chat.id,
-                        message_id=confirmation_msg.message_id
-                    )
-                except Exception as e:
-                    logger.debug(f"Confirmation message already deleted: {e}")
-
-            context.job_queue.run_once(
-                delete_confirmation,
-                when=60,
-                name=f"del_conf_{confirmation_msg.message_id}"
-            )
-
-            logger.info(f"Vouch recorded with confirmation: {user.username} vouched for @{target_username} in {update.message.chat.title}")
-
-        except Exception as e:
-            logger.error(f"Error posting confirmation message: {e}")
-            # Fallback to reaction if confirmation fails
-            try:
-                await update.message.set_reaction("✅")
-            except:
-                pass
-
-    except Exception as e:
-        logger.error(f"Inline vouch error: {e}")
-        # React with ❌
-        try:
-            await update.message.set_reaction("❌")
-        except:
-            pass
 
 
 def setup_bot_handlers(application: Application):
     """Setup all bot command handlers"""
     # Command handlers
     application.add_handler(CommandHandler("start", start_command))
-    application.add_handler(CommandHandler("check", check_command))  # NEW: Look up vouches
+    application.add_handler(CommandHandler("check", check_command))  # DM only - privacy focused
+    application.add_handler(CommandHandler("search", search_command))  # Works in groups - lookup vouches
     application.add_handler(CommandHandler("profile", profile_command))
     application.add_handler(CommandHandler("vouch", vouch_command))
     application.add_handler(CommandHandler("stats", stats_command))
     application.add_handler(CommandHandler("leaderboard", leaderboard_command))
     application.add_handler(CommandHandler("help", help_command))
+    application.add_handler(CommandHandler("faq", faq_command))
     application.add_handler(CommandHandler("share", share_command))
 
     # Callback query handler

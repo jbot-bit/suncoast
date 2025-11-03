@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Vouch Portal</title>
+    <link rel="stylesheet" href="/static/styles-premium.css">
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    
+    <!-- PWA Meta Tags -->
+    <meta name="theme-color" content="#000000">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Vouch Portal">
+    
+    <!-- Preload Critical Resources -->
+    <link rel="preload" href="/static/styles-premium.css" as="style">
+    <link rel="preload" href="/static/main.js" as="script">
+</head>
+<body>
+    <div id="app">
+        <!-- Modern Header with Glassmorphism -->
+        <header class="header">
+            <div class="header-content">
+                <h1>
+                    <span class="logo-emoji">🌟</span>
+                    Vouch Portal
+                </h1>
+                <div id="userBadge" class="user-badge">
+                    <div class="user-avatar-mini"></div>
+                    <span class="user-name">Loading...</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Premium Tab Navigation -->
+        <nav class="tabs">
+            <button class="tab-btn active" data-tab="profile">
+                <span class="tab-icon">👤</span>
+                <span class="tab-label">Profile</span>
+            </button>
+            <button class="tab-btn" data-tab="vouch">
+                <span class="tab-icon">⭐</span>
+                <span class="tab-label">Rate</span>
+            </button>
+            <button class="tab-btn" data-tab="community">
+                <span class="tab-icon">🌍</span>
+                <span class="tab-label">Explore</span>
+            </button>
+            <button class="tab-btn admin-only" data-tab="insights" style="display: none;">
+                <span class="tab-icon">📊</span>
+                <span class="tab-label">Analytics</span>
+            </button>
+        </nav>
+
+        <!-- Main Content Area -->
+        <main class="content">
+            <!-- PROFILE TAB -->
+            <div id="profile-tab" class="tab-content active">
+                <!-- Premium Profile Card -->
+                <div class="profile-card">
+                    <div class="profile-header">
+                        <div class="avatar-container">
+                            <div class="avatar" id="profileAvatar">
+                                <img id="avatarImg" style="display: none;" />
+                                <span id="avatarFallback">👤</span>
+                            </div>
+                            <div class="avatar-status online"></div>
+                        </div>
+                        
+                        <div class="profile-info">
+                            <h2 id="profileName">Loading...</h2>
+                            <div class="rank-badge-large" id="profileRank">
+                                <span class="rank-emoji">🚫</span>
+                                <span class="rank-text">Unverified</span>
+                            </div>
+                            
+                            <!-- Trust Rating Display -->
+                            <div class="rating-display" id="ratingDisplay">
+                                <div class="rating-percentage">100%</div>
+                                <div class="rating-label">Trust Score</div>
+                                <div class="rating-trend">
+                                    <span class="trend-arrow">↗️</span>
+                                    <span class="trend-text">+2%</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <button class="btn-icon" id="editProfileBtn" title="Edit Profile">
+                            <span>✏️</span>
+                        </button>
+                    </div>
+
+                    <!-- Bio & Location -->
+                    <div class="profile-details">
+                        <div class="profile-bio" id="profileBio" style="display: none;">
+                            <p id="bioText"></p>
+                        </div>
+                        <div class="profile-location" id="profileLocation" style="display: none;">
+                            <span class="location-icon">📍</span>
+                            <span id="locationText"></span>
+                        </div>
+                    </div>
+
+                    <!-- Premium Stats Grid -->
+                    <div class="stats-grid">
+                        <div class="stat-card positive-votes">
+                            <div class="stat-icon">👍</div>
+                            <div class="stat-value" id="positiveVotes">0</div>
+                            <div class="stat-label">Positive</div>
+                            <div class="stat-change">+12%</div>
+                        </div>
+                        <div class="stat-card negative-votes">
+                            <div class="stat-icon">👎</div>
+                            <div class="stat-value" id="negativeVotes">0</div>
+                            <div class="stat-label">Negative</div>
+                            <div class="stat-change">-3%</div>
+                        </div>
+                        <div class="stat-card streak-card">
+                            <div class="stat-icon">🔥</div>
+                            <div class="stat-value" id="streakCount">0</div>
+                            <div class="stat-label">Day Streak</div>
+                            <div class="stat-change">Active</div>
+                        </div>
+                    </div>
+
+                    <!-- Progress Section -->
+                    <div class="progress-section">
+                        <div class="progress-header">
+                            <span class="progress-title">Next Rank Progress</span>
+                            <span class="progress-count" id="progressText">3/6</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="progressFill" style="width: 50%"></div>
+                        </div>
+                        <div class="progress-milestones">
+                            <div class="milestone completed">✅</div>
+                            <div class="milestone completed">✅</div>
+                            <div class="milestone current">🎯</div>
+                            <div class="milestone">⭕</div>
+                            <div class="milestone">⭕</div>
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="action-buttons">
+                        <button class="btn btn-primary" id="requestVouchBtn">
+                            <span class="btn-icon">💬</span>
+                            Request Vouch
+                        </button>
+                        <button class="btn btn-secondary" id="shareProfileBtn">
+                            <span class="btn-icon">📤</span>
+                            Share Profile
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Vouches Sections -->
+                <div class="vouches-container">
+                    <div class="section">
+                        <div class="section-header">
+                            <h3>💎 Received Vouches</h3>
+                            <div class="section-badge" id="receivedCount">0</div>
+                        </div>
+                        <div id="receivedVouches" class="vouch-list"></div>
+                    </div>
+
+                    <div class="section">
+                        <div class="section-header">
+                            <h3>🤝 Vouches Given</h3>
+                            <div class="section-badge" id="givenCount">0</div>
+                        </div>
+                        <div id="givenVouches" class="vouch-list"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- VOUCH/RATE TAB -->
+            <div id="vouch-tab" class="tab-content">
+                <div class="vouch-form-card">
+                    <div class="form-header">
+                        <h2>Rate Someone</h2>
+                        <p class="subtitle">Share your experience with the community</p>
+                    </div>
+
+                    <form id="vouchForm" class="premium-form">
+                        <!-- Username Input -->
+                        <div class="form-group">
+                            <label for="targetUsername">Who are you rating?</label>
+                            <div class="input-container">
+                                <span class="input-icon">@</span>
+                                <input
+                                    type="text"
+                                    id="targetUsername"
+                                    placeholder="username"
+                                    required
+                                    autocomplete="off"
+                                >
+                                <button type="button" class="input-action" id="searchUserBtn">
+                                    <span>🔍</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Vote Type Selection -->
+                        <div class="form-group">
+                            <label>Your Experience</label>
+                            <div class="vote-buttons">
+                                <button type="button" class="vote-btn vote-positive active" data-vote="positive">
+                                    <div class="vote-icon">👍</div>
+                                    <div class="vote-label">Positive</div>
+                                    <div class="vote-desc">Great experience</div>
+                                </button>
+                                <button type="button" class="vote-btn vote-negative" data-vote="negative">
+                                    <div class="vote-icon">👎</div>
+                                    <div class="vote-label">Negative</div>
+                                    <div class="vote-desc">Poor experience</div>
+                                </button>
+                            </div>
+                            <input type="hidden" id="voteType" value="positive">
+                        </div>
+
+                        <!-- Message Input -->
+                        <div class="form-group">
+                            <label for="vouchMessage">Share Details (Optional)</label>
+                            <div class="textarea-container">
+                                <textarea
+                                    id="vouchMessage"
+                                    placeholder="Tell others about your experience..."
+                                    maxlength="120"
+                                    rows="4"
+                                ></textarea>
+                                <div class="char-count">
+                                    <span id="charCount">0</span>/120
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Disclaimer -->
+                        <div class="disclaimer">
+                            <div class="disclaimer-icon">⚠️</div>
+                            <div class="disclaimer-text">
+                                All reviews are community-based opinions. Keep feedback respectful and honest.
+                            </div>
+                        </div>
+
+                        <!-- Submit Button -->
+                        <button type="submit" class="btn btn-primary btn-large" id="submitVouchBtn">
+                            <span class="btn-icon">✨</span>
+                            Submit Review
+                        </button>
+                    </form>
+
+                    <!-- Recent Activity -->
+                    <div class="recent-section">
+                        <h4>Recent Reviews</h4>
+                        <div id="recentVouches" class="mini-vouch-list"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- COMMUNITY/EXPLORE TAB -->
+            <div id="community-tab" class="tab-content">
+                <!-- View Switcher -->
+                <div class="community-nav">
+                    <button class="view-tab-btn active" data-view="activity">
+                        <span class="view-icon">🔥</span>
+                        <span class="view-label">Activity</span>
+                    </button>
+                    <button class="view-tab-btn" data-view="users">
+                        <span class="view-icon">👥</span>
+                        <span class="view-label">People</span>
+                    </button>
+                    <button class="view-tab-btn" data-view="groups">
+                        <span class="view-icon">💬</span>
+                        <span class="view-label">Groups</span>
+                    </button>
+                    <button class="view-tab-btn" data-view="leaderboards">
+                        <span class="view-icon">🏆</span>
+                        <span class="view-label">Rankings</span>
+                    </button>
+                </div>
+
+                <!-- Activity Feed -->
+                <div id="activityView" class="community-view active">
+                    <div class="section">
+                        <div class="section-header">
+                            <h3>🔥 Recent Activity</h3>
+                            <button class="refresh-btn" id="refreshActivity">
+                                <span>🔄</span>
+                            </button>
+                        </div>
+                        <div id="activityFeed" class="activity-feed"></div>
+                    </div>
+                </div>
+
+                <!-- Users/People View -->
+                <div id="usersView" class="community-view">
+                    <div class="search-section">
+                        <div class="search-container">
+                            <span class="search-icon">🔍</span>
+                            <input
+                                type="search"
+                                id="communitySearch"
+                                placeholder="Search people..."
+                                class="search-input"
+                            >
+                        </div>
+                    </div>
+
+                    <div class="filters">
+                        <button class="filter-btn active" data-filter="all">All</button>
+                        <button class="filter-btn" data-filter="top_tier">👑 Top-Tier</button>
+                        <button class="filter-btn" data-filter="endorsed">🛡 Endorsed</button>
+                        <button class="filter-btn" data-filter="trusted">🔷 Trusted</button>
+                    </div>
+
+                    <div id="communityGrid" class="community-grid"></div>
+                </div>
+
+                <!-- Groups View -->
+                <div id="groupsView" class="community-view">
+                    <div class="section">
+                        <div class="section-header">
+                            <h3>💬 Community Groups</h3>
+                            <div class="groups-stats">12 Active</div>
+                        </div>
+                        <p class="subtitle">Join active Telegram communities using Vouch Portal</p>
+                        <div id="groupsGrid" class="groups-grid"></div>
+                    </div>
+                </div>
+
+                <!-- Leaderboards View -->
+                <div id="leaderboardsView" class="community-view">
+                    <div class="leaderboard-nav">
+                        <button class="lb-tab-btn active" data-board="most_vouched">
+                            <span class="lb-icon">🏆</span>
+                            <span class="lb-label">Most Vouched</span>
+                        </button>
+                        <button class="lb-tab-btn" data-board="top_givers">
+                            <span class="lb-icon">🤝</span>
+                            <span class="lb-label">Top Givers</span>
+                        </button>
+                        <button class="lb-tab-btn" data-board="rising_stars">
+                            <span class="lb-icon">⭐</span>
+                            <span class="lb-label">Rising Stars</span>
+                        </button>
+                    </div>
+                    <div id="leaderboardContent" class="leaderboard-list"></div>
+                </div>
+            </div>
+
+            <!-- ANALYTICS TAB (Admin Only) -->
+            <div id="insights-tab" class="tab-content">
+                <div class="insights-container">
+                    <div class="insights-header">
+                        <h2>📊 Analytics Dashboard</h2>
+                        <div class="refresh-indicator">
+                            <span class="refresh-dot"></span>
+                            <span>Live</span>
+                        </div>
+                    </div>
+
+                    <!-- Overview Stats -->
+                    <div class="stats-overview">
+                        <div class="insight-card">
+                            <div class="insight-icon">👥</div>
+                            <div class="insight-value" id="totalUsers">0</div>
+                            <div class="insight-label">Total Users</div>
+                            <div class="insight-trend">+12%</div>
+                        </div>
+                        <div class="insight-card">
+                            <div class="insight-icon">🔥</div>
+                            <div class="insight-value" id="activeUsers24h">0</div>
+                            <div class="insight-label">Active (24h)</div>
+                            <div class="insight-trend">+8%</div>
+                        </div>
+                        <div class="insight-card">
+                            <div class="insight-icon">⭐</div>
+                            <div class="insight-value" id="totalVouches">0</div>
+                            <div class="insight-label">Total Vouches</div>
+                            <div class="insight-trend">+24%</div>
+                        </div>
+                        <div class="insight-card">
+                            <div class="insight-icon">🆕</div>
+                            <div class="insight-value" id="newSignups">0</div>
+                            <div class="insight-label">New (7d)</div>
+                            <div class="insight-trend">+5%</div>
+                        </div>
+                    </div>
+
+                    <!-- Additional Analytics Sections -->
+                    <div class="analytics-grid">
+                        <div class="section">
+                            <h3>📈 Growth Metrics</h3>
+                            <div id="growthChart" class="chart-placeholder">
+                                Chart visualization would go here
+                            </div>
+                        </div>
+
+                        <div class="section">
+                            <h3>🏆 Top Performers</h3>
+                            <div id="topPerformers" class="performers-list"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Bottom Safe Area for iOS -->
+        <div class="safe-area-bottom"></div>
+    </div>
+
+    <!-- Premium Modals -->
+    <div id="profileModal" class="modal">
+        <div class="modal-backdrop"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>User Profile</h3>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div id="modalProfileContent" class="modal-body"></div>
+        </div>
+    </div>
+
+    <!-- Edit Profile Modal -->
+    <div id="editProfileModal" class="modal">
+        <div class="modal-backdrop"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Edit Profile</h3>
+                <button class="modal-close" id="closeEditModal">&times;</button>
+            </div>
+            <form id="editProfileForm" class="modal-body">
+                <div class="form-group">
+                    <label for="editBio">Bio</label>
+                    <textarea
+                        id="editBio"
+                        placeholder="Tell people about yourself..."
+                        maxlength="500"
+                        rows="4"
+                    ></textarea>
+                    <div class="char-count">
+                        <span id="bioCharCount">0</span>/500
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="editLocation">Location</label>
+                    <input
+                        type="text"
+                        id="editLocation"
+                        placeholder="City, Country"
+                        maxlength="100"
+                    >
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-large">
+                    <span class="btn-icon">💾</span>
+                    Save Changes
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Premium Toast Notifications -->
+    <div id="toast" class="toast">
+        <div class="toast-content">
+            <div class="toast-icon"></div>
+            <div class="toast-message"></div>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="loading-overlay">
+        <div class="loading-content">
+            <div class="spinner"></div>
+            <p class="loading-text">Loading...</p>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="/static/main.js"></script>
+</body>
+</html>

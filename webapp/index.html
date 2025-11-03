@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>Vouch Portal - Premium</title>
-    <link rel="stylesheet" href="/static/styles.css">
+    <link rel="stylesheet" href="/static/styles-premium.css">
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
 <body>
@@ -33,10 +33,6 @@
                         <div class="profile-info">
                             <h2 id="profileName">Loading...</h2>
                             <div class="rank-badge-large" id="profileRank"></div>
-                            <div class="rating-display" id="ratingDisplay">
-                                <div class="rating-percentage">100%</div>
-                                <div class="rating-label">Trust Rating</div>
-                            </div>
                         </div>
                         <button class="btn-icon" id="editProfileBtn" title="Edit Profile">✏️</button>
                     </div>
@@ -50,17 +46,35 @@
                     </div>
 
                     <div class="stats-grid">
-                        <div class="stat-card positive-votes">
-                            <div class="stat-value" id="positiveVotes">0</div>
-                            <div class="stat-label">👍 Positive</div>
-                        </div>
-                        <div class="stat-card negative-votes">
-                            <div class="stat-value" id="negativeVotes">0</div>
-                            <div class="stat-label">👎 Negative</div>
+                        <div class="stat-card">
+                            <div class="stat-value" id="totalVouchCount">0</div>
+                            <div class="stat-label">Total Vouches</div>
                         </div>
                         <div class="stat-card streak-card">
                             <div class="stat-value" id="streakCount">🔥 0</div>
                             <div class="stat-label">Day Streak</div>
+                        </div>
+                    </div>
+
+                    <!-- Vouch Breakdown Dropdown -->
+                    <div class="vouch-breakdown-section">
+                        <button class="vouch-breakdown-toggle" id="vouchBreakdownToggle">
+                            <span>📊 Vouch Breakdown</span>
+                            <span class="toggle-icon">▼</span>
+                        </button>
+                        <div class="vouch-breakdown-content" id="vouchBreakdownContent" style="display: none;">
+                            <div class="breakdown-stats">
+                                <div class="breakdown-item positive">
+                                    <span class="breakdown-icon">👍</span>
+                                    <span class="breakdown-label">Positive</span>
+                                    <span class="breakdown-value" id="positiveVotes">0</span>
+                                </div>
+                                <div class="breakdown-item negative">
+                                    <span class="breakdown-icon">👎</span>
+                                    <span class="breakdown-label">Negative</span>
+                                    <span class="breakdown-value" id="negativeVotes">0</span>
+                                </div>
+                            </div>
                         </div>
                     </div>
 

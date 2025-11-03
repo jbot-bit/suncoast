@@ -52,12 +52,33 @@ async def lifespan(app: FastAPI):
                 if not webhook_url.endswith("/webhook"):
                     webhook_url = f"{webhook_url}/webhook"
                 
-                await bot_app.bot.set_webhook(url=webhook_url)
-                logger.info(f"Webhook set to: {webhook_url}")
+                # Set webhook with all update types to ensure we receive ALL messages
+                await bot_app.bot.set_webhook(
+                    url=webhook_url,
+                    allowed_updates=[
+                        "message",
+                        "edited_message", 
+                        "channel_post",
+                        "edited_channel_post",
+                        "callback_query",
+                        "inline_query",
+                        "chosen_inline_result",
+                        "shipping_query",
+                        "pre_checkout_query",
+                        "poll",
+                        "poll_answer",
+                        "my_chat_member",
+                        "chat_member",
+                        "chat_join_request"
+                    ]
+                )
+                logger.info(f"Webhook set to: {webhook_url} with ALL update types")
                 
                 # Verify webhook was set
                 webhook_info = await bot_app.bot.get_webhook_info()
                 logger.info(f"Webhook status: URL={webhook_info.url}, Pending={webhook_info.pending_update_count}")
+                if webhook_info.last_error_message:
+                    logger.error(f"Webhook error: {webhook_info.last_error_message}")
             except Exception as webhook_error:
                 logger.error(f"Failed to set webhook: {webhook_error}")
         
@@ -181,10 +202,40 @@ async def get_bot_info():
     }
 
 
+@app.get("/api/test-moderation")
+async def test_moderation():
+    """Test endpoint to check if moderation is working"""
+    from bot import check_instant_violations, ENABLE_CONTENT_MODERATION, BANNED_WORDS
+    
+    test_messages = [
+        "Hello everyone!",
+        "I have some cocaine for sale", 
+        "Anyone want to buy drugs?",
+        "This is a normal message",
+        "drug dealer here"
+    ]
+    
+    results = []
+    for msg in test_messages:
+        is_violation, reason = check_instant_violations(msg)
+        results.append({
+            "message": msg,
+            "is_violation": is_violation,
+            "reason": reason
+        })
+    
+    return {
+        "moderation_enabled": ENABLE_CONTENT_MODERATION,
+        "banned_words_count": len(BANNED_WORDS),
+        "test_results": results,
+        "sample_banned_words": BANNED_WORDS[:10]
+    }
+
+
 @app.post("/webhook")
 async def webhook(request: Request):
     """Handle Telegram webhook updates"""
-    logger.info("Webhook received a request")
+    logger.info("🔗 Webhook received a request")
     
     if not bot_app:
         logger.error("Bot not initialized")
@@ -192,18 +243,29 @@ async def webhook(request: Request):
     
     try:
         data = await request.json()
-        logger.info(f"Webhook data received: {data}")
+        logger.info(f"📨 Webhook data received: {data}")
         
         update = Update.de_json(data, bot_app.bot)
-        logger.info(f"Update parsed: update_id={update.update_id if update else 'None'}")
+        logger.info(f"🔄 Update parsed: update_id={update.update_id if update else 'None'}")
+        
+        # Log the type of update and message details
+        if update and update.message:
+            msg = update.message
+            logger.info(f"💬 Message update: chat_type={msg.chat.type}, user_id={msg.from_user.id}, text='{msg.text[:100] if msg.text else 'No text'}'")
+        elif update and update.edited_message:
+            logger.info(f"✏️ Edited message update received")
+        elif update and update.callback_query:
+            logger.info(f"🔘 Callback query update received")
+        else:
+            logger.info(f"❓ Other update type received: {type(update)}")
 
         # Process update
         await bot_app.process_update(update)
-        logger.info("Update processed successfully")
+        logger.info("✅ Update processed successfully")
 
         return {"status": "ok"}
     except Exception as e:
-        logger.error(f"Webhook error: {e}", exc_info=True)
+        logger.error(f"❌ Webhook error: {e}", exc_info=True)
         return {"status": "error", "message": str(e)}
 
 
